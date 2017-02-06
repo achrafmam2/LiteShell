@@ -66,7 +66,7 @@ int getcmd(char *buff, int limit) {
     return 0;
   }
   
-  // Trim end of line is any.
+  // Trim end of line if any.
   if (buff[strlen(buff)-1] == '\n') {
     buff[strlen(buff)-1] = '\0';
   }
@@ -85,7 +85,6 @@ int fork1(void) {
     fprintf(stderr, "fork1 error.\n");
     exit(EXIT_FAILURE);
   }
-  
   
   return pid;
 }
