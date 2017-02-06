@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 /* 
@@ -58,7 +59,20 @@ int getcmd(char *buff, int limit) {
     printf("%s$ ", getlogin());
   }
   
-  return 0;
+  if (!fgets(buff, limit, stdin)) {
+    return 0;
+  }
+  
+  // Trim end of line is any.
+  if (buff[strlen(buff)-1] == '\n') {
+    buff[strlen(buff)-1] = '\0';
+  }
+  
+#ifdef DEBUG
+  fprintf(stderr, "buff: %s\n", buff);
+#endif
+  
+  return 1;
 }
 
 int fork1(void) {
