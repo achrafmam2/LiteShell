@@ -76,5 +76,12 @@ int getcmd(char *buff, int limit) {
 }
 
 int fork1(void) {
-  return -1;
+  pid_t pid = fork();
+  
+  if (pid == -1) {
+    fprintf(stderr, "fork1 error.\n");
+    exit(EXIT_FAILURE);
+  }
+  
+  return pid;
 }
