@@ -22,15 +22,15 @@ int fork1(void);
 
 /* struct cmd: encapsulated command information */
 struct command {
-  char *path;
-  char **argv;
-  int nargs;
+  char *path;  /* Path of the command. */
+  char **argv; /* arguments of the command */   
+  int nargs;   /* number of arguments. */
 };
 
 /*
-  parsecmd: parses a string and creates a cmd out of it 
+  parsecmd: parses a string and creates a cmd out of it, terminates in case of error.
   @param buff: buffer that contains the command and it arguments.
-  @return: a struct command in case of success, NULL otherwise.
+  @return: a struct command in case of success.
 */
 struct command *parsecmd(char *buff);
 
@@ -46,8 +46,10 @@ int main(int argc, char *argv[]) {
   
   while (getcmd(buffer, BUFFER_SIZE)) {
      if (fork1() == 0) {
-       parsecmd(buffer);
+       struct command * cmd = parsecmd(buffer); 
+       exit(EXIT_SUCCESS);
      }
+     wait(NULL);
   }
   
   puts("Session closed.");
@@ -66,7 +68,7 @@ int getcmd(char *buff, int limit) {
     return 0;
   }
   
-  // Trim end of line is any.
+  // Trim end of line if any.
   if (buff[strlen(buff)-1] == '\n') {
     buff[strlen(buff)-1] = '\0';
   }
@@ -86,7 +88,6 @@ int fork1(void) {
     exit(EXIT_FAILURE);
   }
   
-  
   return pid;
 }
 
@@ -97,7 +98,7 @@ struct command * parsecmd(char *buff) {
   struct command *cmd = (struct command *)malloc(sizeof(struct command));
   if (!cmd) {
     fprintf(stderr, "parsecmd: couldn't allocate memory for cmd.\n");
-    return NULL;
+    exit(EXIT_FAILURE);
   }
   
   int argc = 0, argv_cap = 0;
@@ -117,7 +118,7 @@ struct command * parsecmd(char *buff) {
         argv_cap = MAX(argv_cap + 1, argv_cap * 2);
         if (!(cmd->argv = realloc(cmd->argv, argv_cap * sizeof(char *)))) {
           fprintf(stderr, "parsecmd: not enough memory for arguments.\n");
-          return NULL;
+          exit(EXIT_FAILURE);
         }
       }
       // Copy it.
