@@ -1,7 +1,9 @@
 #include <assert.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -57,11 +59,53 @@ int main(int argc, char *argv[]) {
   exit(EXIT_SUCCESS);
 }
 
+/*
+  getrcwd: get relative path of current working directory.
+  @return: pointer to relative current working directory.
+  @note: caller is responsible of freeing memory.
+*/
+
+char *getrcwd(void) {
+  static size_t MAXPATH_LEN = 1024;
+  
+  char *cwd = (char *)malloc(sizeof(char) * (MAXPATH_LEN + 1));
+  cwd = getcwd(cwd, MAXPATH_LEN);
+  
+  // if current working directory is the home directory change to '~'.
+  struct passwd *pw = getpwuid(getuid());
+  const char *homedir = pw->pw_dir;
+  if (!strcmp(cwd, homedir)) {
+    strcpy(cwd, "~");
+  } else {
+    int i;
+    
+    // locate last '/'.
+    for (i = strlen(cwd)-1; i >= 0; i--) {
+      if (cwd[i] == '/') {
+        break;
+      }
+    }   
+    assert(i >= 0);
+    
+    // Copy relative directory path.
+    strcpy(cwd, &cwd[i+1]);
+    
+    if (strlen(cwd) == 0) {
+      // We are in root now.
+      strcpy(cwd, "/");
+    }
+  }
+    
+  return cwd;
+}
+
 int getcmd(char *buff, int limit) {
   if (isatty(fileno(stdin))) {
     // if the input comes from a terminal, print name of the user who is logged in the current
     // session.
-    printf("%s$ ", getlogin());
+    char *working_dir = getrcwd();
+    printf("%s: %s$ ", working_dir, getlogin());
+    free(working_dir);
   }
   
   if (!fgets(buff, limit, stdin)) {
