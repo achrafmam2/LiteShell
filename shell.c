@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <pwd.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,8 +46,7 @@ int main(int argc, char *argv[]) {
   
   while (getcmd(buffer, BUFFER_SIZE)) {
      if (fork1() == 0) {
-       struct command * cmd = parsecmd(buffer); 
-       exit(EXIT_SUCCESS);
+       execcmd(parsecmd(buffer)); // Never returns.
      }
      wait(NULL);
   }
@@ -179,6 +179,58 @@ struct command * parsecmd(char *buff) {
     printf("$arg %i: %s\n", i, cmd->argv[i]); 
   }
 #endif
-  
+    
   return cmd;
+}
+
+bool is_path(const char *s) {
+  for (int i = 0; i < strlen(s); i++) {
+    if (s[i] == '/') {
+      return true;
+    }
+  }
+  return false;
+}
+
+char *get_cmd_path(char *s) {
+  if (is_path(s)) {
+    return s;
+  }
+  
+  // Look for command 's' in $LITE_SHELL_PATH.
+  char *paths = getenv("LITE_SHELL_PATH");
+  if (paths) {
+    const char *delim = ":"; // Paths are separated with ':'.
+
+    char *ps = strtok(s, delim);
+    while (ps) {
+      char *path = (char *)malloc(sizeof(char) * (strlen(ps) + strlen(s) + 1));
+      strcpy(path, ps);
+      strcat(path, s);
+      
+      // Check if file exists.
+      if (!access(path, F_OK)) {
+        return path;
+      }
+      
+      ps = strtok(NULL, delim);
+    }
+  }
+  
+  return NULL;
+}
+
+void execcmd(struct command *cmd) {
+  const char *cmd_path = get_cmd_path(cmd->argv[0]);
+  if (!cmd_path) {
+    fprintf(stderr, "Command not found.\n");
+    _exit(127);
+  }
+    
+  execv(cmd_path, cmd->argv);
+  
+#ifdef DEBUG
+  fprintf(stderr, "execcmd: execv failed.\n");
+#endif
+  _exit(127);
 }
