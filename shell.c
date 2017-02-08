@@ -24,9 +24,6 @@ int fork1(void);
 
 /* struct cmd: encapsulated command information */
 struct command {
-  char *path;  /* Path of the command. */
-  char **argv; /* arguments of the command */   
-  int nargs;   /* number of arguments. */
 };
 
 /*
@@ -145,29 +142,17 @@ struct command * parsecmd(char *buff) {
     exit(EXIT_FAILURE);
   }
   
-  int argc = 0, argv_cap = 0;
+  // Allocate memory for argv[].
+  cmd->argv = (char **)malloc(sizeof(char *));
+  if (cmd->argv == NULL) {
+    fprintf(stderr, "parsecmd: Not enough memory for argv[].\n");
+    exit(EXIT_FAILURE);
+  }
+  
+  // Parse buff.
+  int argc = 0, argv_cap = 1;
   while (s) {
-    if (argc == 0) {
-      // Command path.
-      cmd->path = (char *)malloc(sizeof(char) * (1 + strlen(s)));
-      strcpy(cmd->path, s);
-#ifdef DEBUG
-      fprintf(stderr, "cmd: %s\n", cmd->path);
-#endif
-    } else {
-      // Command arguments;
-      cmd->nargs++;
-      if (cmd->nargs > argv_cap) {
-        // Not enough capacity, double it.
-        argv_cap = MAX(argv_cap + 1, argv_cap * 2);
-        if (!(cmd->argv = realloc(cmd->argv, argv_cap * sizeof(char *)))) {
-          fprintf(stderr, "parsecmd: not enough memory for arguments.\n");
-          exit(EXIT_FAILURE);
-        }
       }
-      // Copy it.
-      cmd->argv[argc-1] = (char *)malloc(sizeof(char) * (1 + strlen(s))); 
-      strcpy(cmd->argv[argc-1], s);
 #ifdef DEBUG
       fprintf(stderr, "arg%i: %s\n", argc, cmd->argv[argc-1]);
 #endif
