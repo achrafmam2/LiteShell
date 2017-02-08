@@ -6,8 +6,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-
 /* 
   getcmd: get input from stdin.
   @param buff: buffer for input from stdin.
@@ -24,6 +22,8 @@ int fork1(void);
 
 /* struct cmd: encapsulated command information */
 struct command {
+  /* The command path is argv[0]. */
+  char **argv; /* arguments of the command, NULL terminated */   
 };
 
 /*
@@ -152,15 +152,33 @@ struct command * parsecmd(char *buff) {
   // Parse buff.
   int argc = 0, argv_cap = 1;
   while (s) {
+    if (argv_cap <= argc + 1) {
+      // Double capacity.
+      argv_cap *= 2;
+      
+      cmd->argv = (char **)realloc(cmd->argv, sizeof(char *) * (argv_cap + 1)); // +1 for NULL.
+      if (!cmd->argv) {
+        fprintf(stderr, "parsecmd: Not enough memory for argv[].\n");
+        exit(EXIT_FAILURE);
       }
-#ifdef DEBUG
-      fprintf(stderr, "arg%i: %s\n", argc, cmd->argv[argc-1]);
-#endif
     }
+    
+    // Copy it.
+    cmd->argv[argc] = (char *)malloc(sizeof(char) * (1 + strlen(s))); 
+    strcpy(cmd->argv[argc], s);
     
     s = strtok(NULL, delims);
     argc++;
   }
+  
+  // NULL terminate argv[].
+  cmd->argv[argc] = NULL;
+  
+#ifdef DEBUG
+  for (int i = 0; cmd->argv[i]; i++) {
+    printf("$arg %i: %s\n", i, cmd->argv[i]); 
+  }
+#endif
   
   return cmd;
 }
