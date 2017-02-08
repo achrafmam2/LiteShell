@@ -6,8 +6,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-
 /* 
   getcmd: get input from stdin.
   @param buff: buffer for input from stdin.
