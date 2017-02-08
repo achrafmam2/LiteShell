@@ -6,8 +6,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-
 /* 
   getcmd: get input from stdin.
   @param buff: buffer for input from stdin.
@@ -24,9 +22,8 @@ int fork1(void);
 
 /* struct cmd: encapsulated command information */
 struct command {
-  char *path;  /* Path of the command. */
-  char **argv; /* arguments of the command */   
-  int nargs;   /* number of arguments. */
+  /* The command path is argv[0]. */
+  char **argv; /* arguments of the command, NULL terminated */   
 };
 
 /*
@@ -145,37 +142,43 @@ struct command * parsecmd(char *buff) {
     exit(EXIT_FAILURE);
   }
   
-  int argc = 0, argv_cap = 0;
+  // Allocate memory for argv[].
+  cmd->argv = (char **)malloc(sizeof(char *));
+  if (cmd->argv == NULL) {
+    fprintf(stderr, "parsecmd: Not enough memory for argv[].\n");
+    exit(EXIT_FAILURE);
+  }
+  
+  // Parse buff.
+  int argc = 0, argv_cap = 1;
   while (s) {
-    if (argc == 0) {
-      // Command path.
-      cmd->path = (char *)malloc(sizeof(char) * (1 + strlen(s)));
-      strcpy(cmd->path, s);
-#ifdef DEBUG
-      fprintf(stderr, "cmd: %s\n", cmd->path);
-#endif
-    } else {
-      // Command arguments;
-      cmd->nargs++;
-      if (cmd->nargs > argv_cap) {
-        // Not enough capacity, double it.
-        argv_cap = MAX(argv_cap + 1, argv_cap * 2);
-        if (!(cmd->argv = realloc(cmd->argv, argv_cap * sizeof(char *)))) {
-          fprintf(stderr, "parsecmd: not enough memory for arguments.\n");
-          exit(EXIT_FAILURE);
-        }
+    if (argv_cap <= argc + 1) {
+      // Double capacity.
+      argv_cap *= 2;
+      
+      cmd->argv = (char **)realloc(cmd->argv, sizeof(char *) * (argv_cap + 1)); // +1 for NULL.
+      if (!cmd->argv) {
+        fprintf(stderr, "parsecmd: Not enough memory for argv[].\n");
+        exit(EXIT_FAILURE);
       }
-      // Copy it.
-      cmd->argv[argc-1] = (char *)malloc(sizeof(char) * (1 + strlen(s))); 
-      strcpy(cmd->argv[argc-1], s);
-#ifdef DEBUG
-      fprintf(stderr, "arg%i: %s\n", argc, cmd->argv[argc-1]);
-#endif
     }
+    
+    // Copy it.
+    cmd->argv[argc] = (char *)malloc(sizeof(char) * (1 + strlen(s))); 
+    strcpy(cmd->argv[argc], s);
     
     s = strtok(NULL, delims);
     argc++;
   }
+  
+  // NULL terminate argv[].
+  cmd->argv[argc] = NULL;
+  
+#ifdef DEBUG
+  for (int i = 0; cmd->argv[i]; i++) {
+    printf("$arg %i: %s\n", i, cmd->argv[i]); 
+  }
+#endif
   
   return cmd;
 }
