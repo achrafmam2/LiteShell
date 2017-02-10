@@ -40,15 +40,28 @@ struct command *parsecmd(char *buff);
 */
 void execcmd(struct command*);
 
+/* 
+  builtin_command: runs builtin shell commands.
+  @param cmd: command to check and run if builtin.
+  @return: true if @param cmd is builtin; false otherwise.
+*/
+bool builtin_command(struct command *cmd);
+
 int main(int argc, char *argv[]) {
   const int BUFFER_SIZE = 1024;
   char buffer[BUFFER_SIZE+1];
   
   while (getcmd(buffer, BUFFER_SIZE)) {
-     if (fork1() == 0) {
-       execcmd(parsecmd(buffer)); // Never returns.
-     }
-     wait(NULL);
+    // TODO(achraf): free cmd.
+    struct command *cmd = parsecmd(buffer);
+    if (builtin_command(cmd)) {
+      continue;
+    }
+    
+    if (fork1() == 0) {
+      execcmd(cmd); // Never returns.
+    }
+    wait(NULL);
   }
   
   puts("Session closed.");
@@ -65,34 +78,37 @@ int main(int argc, char *argv[]) {
 char *getrcwd(void) {
   static size_t MAXPATH_LEN = 1024;
   
+  // TODO(achraf): check for NULL.
   char *cwd = (char *)malloc(sizeof(char) * (MAXPATH_LEN + 1));
   cwd = getcwd(cwd, MAXPATH_LEN);
-  
+    
   // if current working directory is the home directory change to '~'.
+  // TODO(achraf): implement error checking.
   struct passwd *pw = getpwuid(getuid());
-  const char *homedir = pw->pw_dir;
+  const char *homedir = pw->pw_dir;  
   if (!strcmp(cwd, homedir)) {
     strcpy(cwd, "~");
   } else {
     int i;
     
     // locate last '/'.
-    for (i = strlen(cwd)-1; i >= 0; i--) {
+    for (i = (int)strlen(cwd)-1; i >= 0; i--) {
       if (cwd[i] == '/') {
         break;
       }
     }   
-    assert(i >= 0);
-    
+                
     // Copy relative directory path.
-    strcpy(cwd, &cwd[i+1]);
-    
+    for (int j = 0; i + j < strlen(cwd); j++) {
+      cwd[j] = cwd[i+j+1];
+    }
+        
     if (strlen(cwd) == 0) {
       // We are in root now.
       strcpy(cwd, "/");
     }
   }
-    
+      
   return cwd;
 }
 
@@ -222,6 +238,40 @@ char *get_cmd_path(char *s) {
   return NULL;
 }
 
+/*
+  cd: change directory.
+  @param cmd: command line arguments for cd.
+*/
+
+void cd(struct command *cmd) {
+  // TODO(achraf): implement error checking.
+  if (chdir(cmd->argv[1])) {
+    fprintf(stderr, "cd failed.\n");
+  }
+}
+
+bool builtin_command(struct command *cmd) {
+  typedef void (*funcptr)(struct command *); // Pointer to functions for commands.
+  
+  static int nbuiltin_cmds = 1;           // Number of builtin commands.
+  static char *builtin_cmds[] = {"cd"};   // Names of builtin commands.
+  static funcptr closures[] = {&cd};      // Pointers to builtin functions.
+  
+  if (!cmd->argv[0]) {
+    // NULL command.
+    return true;
+  }
+  
+  for (int i = 0; i < nbuiltin_cmds; i++) {
+    if (!strcmp(cmd->argv[0], builtin_cmds[i])) {
+      closures[i](cmd);
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 void execcmd(struct command *cmd) {
   const char *cmd_path = get_cmd_path(cmd->argv[0]);
   if (!cmd_path) {
@@ -230,6 +280,8 @@ void execcmd(struct command *cmd) {
   }
     
   execv(cmd_path, cmd->argv);
+  
+  // TODO(achraf): implement error checking.
   
 #ifdef DEBUG
   fprintf(stderr, "execcmd: execv failed.\n");
