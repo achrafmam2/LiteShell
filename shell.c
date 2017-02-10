@@ -199,11 +199,7 @@ char *get_cmd_path(char *s) {
   
   // Look for command 's' in $LITE_SHELL_PATH.
   char *paths = getenv("LITE_SHELL_PATH");
-  
-#ifdef DEBUG
-  fprintf(stderr, "$LITE_SHELL_PATH = %s\n", paths);
-#endif
-  
+    
   if (paths) {
     const char *delim = ":"; // Paths are separated with ':'.
 
@@ -213,11 +209,7 @@ char *get_cmd_path(char *s) {
       strcpy(path, ps);
       strcat(path, "/");
       strcat(path, s);
-      
-#ifdef DEBUG
-  fprintf(stderr, "CHECKING in %s\n", path);
-#endif      
-      
+            
       // Check if file exists.
       if (!access(path, F_OK)) {
         return path;
