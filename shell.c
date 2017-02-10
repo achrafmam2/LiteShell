@@ -199,15 +199,17 @@ char *get_cmd_path(char *s) {
   
   // Look for command 's' in $LITE_SHELL_PATH.
   char *paths = getenv("LITE_SHELL_PATH");
+    
   if (paths) {
     const char *delim = ":"; // Paths are separated with ':'.
 
-    char *ps = strtok(s, delim);
+    char *ps = strtok(paths, delim);
     while (ps) {
       char *path = (char *)malloc(sizeof(char) * (strlen(ps) + strlen(s) + 1));
       strcpy(path, ps);
+      strcat(path, "/");
       strcat(path, s);
-      
+            
       // Check if file exists.
       if (!access(path, F_OK)) {
         return path;
