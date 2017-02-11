@@ -250,12 +250,21 @@ void cd(struct command *cmd) {
   }
 }
 
+/*
+  terminate: terminates current shell session.
+*/
+
+void terminate(struct command *cmd) {
+  puts("Session closed.\n");
+  exit(EXIT_SUCCESS);
+}
+
 bool builtin_command(struct command *cmd) {
   typedef void (*funcptr)(struct command *); // Pointer to functions for commands.
   
-  static int nbuiltin_cmds = 1;           // Number of builtin commands.
-  static char *builtin_cmds[] = {"cd"};   // Names of builtin commands.
-  static funcptr closures[] = {&cd};      // Pointers to builtin functions.
+  static int nbuiltin_cmds = 2;                   // Number of builtin commands.
+  static char *builtin_cmds[] = {"cd", "exit"};   // Names of builtin commands.
+  static funcptr closures[] = {&cd, &terminate};  // Pointers to builtin functions.
   
   if (!cmd->argv[0]) {
     // NULL command.
