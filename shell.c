@@ -246,7 +246,7 @@ char *get_cmd_path(char *s) {
 void cd(struct command *cmd) {
   // TODO(achraf): implement error checking.
   if (chdir(cmd->argv[1])) {
-    fprintf(stderr, "cd failed.\n");
+    fprintf(stderr, "cd: %s: no such file or directory.\n", cmd->argv[1]);
   }
 }
 
