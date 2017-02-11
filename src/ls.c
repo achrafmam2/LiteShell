@@ -19,8 +19,9 @@ void usage(void);
 void showdir(const char *path, int hflag);
 
 int main(int argc, char *argv[]) {
-  int hflag = 0;
+  int hflag = 0;  // Is -h given ? 
   
+  // To suppress getopt error messages.
   opterr = 0;
   
   int c;
@@ -57,6 +58,7 @@ int main(int argc, char *argv[]) {
   }
   
   if (!is_path_given) {
+    // No path given; print content of current dir.
     showdir("./", hflag);
   }
   
