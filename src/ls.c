@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 }
 
 void usage(void) {
-  fprintf(stderr, "ls: [-a] [file ...]\n");
+  fprintf(stderr, "ls: [-h] [file ...]\n");
 }
 
 void showdir(const char *path, int hflag) {
