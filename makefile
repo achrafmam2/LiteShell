@@ -7,10 +7,10 @@ bin:
 	mkdir -p bin/
 
 ls: src/ls.c
-	gcc src/ls.c -o bin/ls -std=c99
+	gcc src/ls.c -o bin/ls
 
 rm: src/mkdir.c
-	gcc src/mkdir.c -o bin/mkdir -std=c99
+	gcc src/mkdir.c -o bin/mkdir
 
 touch: src/touch.c
-	gcc src/touch.c -o bin/touch -std=c99
+	gcc src/touch.c -o bin/touch
