@@ -7,11 +7,11 @@ Lite Shell is a simple shell that allows executing simple commands.
 3) open ~/.bash_profile and export the global variable LITE_SHELL_PATH
    e.g: vi ~/.bash_profile
 	then append to the text: 
-	  export LITE_SHELL_PATH=DirectoryWhereTheShellIsInstalled/bin
+	  export LITE_SHELL_PATH="DirectoryWhereTheShellIsInstalled/bin"
 	for example if you installed the shell in Desktop, then command will be
-	  export LITE_SHELL_PATH=$HOME/Desktop/bin
+	  export LITE_SHELL_PATH="$HOME/Desktop/bin"
 	or if you are inside the installation directory
-	  export LITE_SHELL_PATH=$PWD/bin
+	  export LITE_SHELL_PATH="$PWD/bin"
 	save and quit.
 	then run 
 	  profile ~/.bash_profile
