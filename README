@@ -1,0 +1,29 @@
+Lite Shell is a simple shell that allows executing simple commands.
+
+** Installation **
+
+1) unizip the project.
+2) run make.
+3) open ~/.bash_profile and export the global variable LITE_SHELL_PATH
+   e.g: vi ~/.bash_profile
+	then append to the text: 
+	  export LITE_SHELL_PATH="DirectoryWhereTheShellIsInstalled/bin"
+	for example if you installed the shell in Desktop, then command will be
+	  export LITE_SHELL_PATH="$HOME/Desktop/bin"
+	or if you are inside the installation directory
+	  export LITE_SHELL_PATH="$PWD/bin"
+	save and quit.
+	then run 
+	  profile ~/.bash_profile
+	this will set LITE_SHELL_PATH.
+	
+	Note: test by running echo $LITE_SHELL_PATH it should display the path to the bin
+	installation directory after make was run.
+
+
+** Supported Commands **
+
++ cd
++ mkdir
++ ls
++ touch
